@@ -164,6 +164,8 @@ A system prompt template is also available via `memory_system_prompt` MCP prompt
 ### Claude Desktop
 
 Add to `claude_desktop_config.json`:
+
+**OpenAI embeddings:**
 ```json
 {
   "mcpServers": {
@@ -178,10 +180,29 @@ Add to `claude_desktop_config.json`:
 }
 ```
 
+**Local embeddings (no API key required):**
+```json
+{
+  "mcpServers": {
+    "mcp-super-memory": {
+      "command": "uvx",
+      "args": ["mcp-super-memory[local]"],
+      "env": {
+        "EMBEDDING_BACKEND": "local"
+      }
+    }
+  }
+}
+```
+
 ### Claude Code
 
 ```bash
+# OpenAI embeddings
 claude mcp add mcp-super-memory -e OPENAI_API_KEY=your-openai-api-key -- uvx mcp-super-memory
+
+# Local embeddings (no API key required)
+claude mcp add mcp-super-memory -e EMBEDDING_BACKEND=local -- uvx "mcp-super-memory[local]"
 ```
 
 ### Manual / Development
@@ -197,6 +218,14 @@ OPENAI_API_KEY=your-openai-api-key
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 ```
 
+Or use local embeddings (no API key required):
+```
+EMBEDDING_BACKEND=local
+LOCAL_EMBEDDING_MODEL=all-MiniLM-L6-v2  # optional, this is the default
+```
+
+> **Note:** Mixing backends on existing data will break recall. If switching backends, clear `~/.super-memory/graph.json` first.
+
 ```bash
 uv sync
 uv run mcp-super-memory
@@ -204,7 +233,7 @@ uv run mcp-super-memory
 
 **Requirements:**
 - Python 3.12+
-- OpenAI API key (for embeddings)
+- OpenAI API key (for embeddings) — or `sentence-transformers` for local embeddings
 
 ---
 

@@ -23,6 +23,11 @@ dependencies = [
     "python-dotenv>=1.2.2",
 ]
 
+[project.optional-dependencies]
+local = [
+    "sentence-transformers>=3.0.0",
+]
+
 [project.urls]
 Homepage = "https://github.com/donggyun112/super-memory"
 Repository = "https://github.com/donggyun112/super-memory"

@@ -21,6 +21,12 @@ CONVERSATIONS_DIR = DATA_DIR / "conversations"
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
+LOCAL_EMBEDDING_MODEL = os.getenv("LOCAL_EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+
+# 백엔드 결정: 명시적 설정 > API 키 유무로 자동 선택
+_DEFAULT_BACKEND = "openai" if OPENAI_API_KEY else "local"
+EMBEDDING_BACKEND = os.getenv("EMBEDDING_BACKEND", _DEFAULT_BACKEND)
+
 KEY_MERGE_THRESHOLD = 0.85
 DEPTH_INCREMENT = 0.05
 DEPTH_MAX = 1.0
@@ -30,7 +36,9 @@ _EMBED_RETRIES = 3
 
 
 def embed_text(text: str) -> list[float]:
-    """OpenAI Embedding API 호출 (동기, load 전용)."""
+    """Embedding 호출 (동기, load 전용). EMBEDDING_BACKEND에 따라 라우팅."""
+    if EMBEDDING_BACKEND == "local":
+        return _embed_local(text)
     for attempt in range(_EMBED_RETRIES):
         try:
             resp = httpx.post(
@@ -49,6 +57,32 @@ def embed_text(text: str) -> list[float]:
 
 
 _async_client: httpx.AsyncClient | None = None
+_local_model = None
+
+
+def _get_local_model():
+    global _local_model
+    if _local_model is None:
+        try:
+            from sentence_transformers import SentenceTransformer  # type: ignore
+        except ImportError:
+            raise RuntimeError(
+                "sentence-transformers is not installed.\n"
+                "Install it with: pip install sentence-transformers\n"
+                "Or set OPENAI_API_KEY to use OpenAI embeddings."
+            )
+        _local_model = SentenceTransformer(LOCAL_EMBEDDING_MODEL)
+    return _local_model
+
+
+def _embed_local(text: str) -> list[float]:
+    model = _get_local_model()
+    return model.encode(text, normalize_embeddings=True).tolist()
+
+
+async def _embed_local_async(text: str) -> list[float]:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _embed_local, text)
 
 
 def _get_async_client() -> httpx.AsyncClient:
@@ -74,7 +108,9 @@ atexit.register(_shutdown_async_client)
 
 
 async def embed_text_async(text: str) -> list[float]:
-    """OpenAI Embedding API 호출 (비동기, retry 포함)."""
+    """Embedding 호출 (비동기, retry 포함). EMBEDDING_BACKEND에 따라 라우팅."""
+    if EMBEDDING_BACKEND == "local":
+        return await _embed_local_async(text)
     client = _get_async_client()
     for attempt in range(_EMBED_RETRIES):
         try:
