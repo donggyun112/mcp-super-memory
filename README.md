@@ -181,7 +181,7 @@ Add to `claude_desktop_config.json`:
 ### Claude Code
 
 ```bash
-claude mcp add mcp-super-memory -- uvx mcp-super-memory
+claude mcp add mcp-super-memory -e OPENAI_API_KEY=your-openai-api-key -- uvx mcp-super-memory
 ```
 
 ### Manual / Development
