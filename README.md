@@ -1,9 +1,17 @@
-# Super Memory
+# mcp-super-memory
+
+[![PyPI version](https://img.shields.io/pypi/v/mcp-super-memory)](https://pypi.org/project/mcp-super-memory/)
+[![Python](https://img.shields.io/pypi/pyversions/mcp-super-memory)](https://pypi.org/project/mcp-super-memory/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**N:M associative memory graph for LLM agents — delivered as an MCP server.**
 
 > Search **"Newton"** → reach **"strawberry"** through shared keys.
 > Embedding similarity alone can't do this.
 
-An N:M associative memory system for LLM agents. Memories live in a **Value Space**, accessed through a separate **Key Space** — one memory reachable via many keys, one key leading to many memories. This enables human-like associative leaps that vector search fundamentally cannot.
+`mcp-super-memory` is an associative memory system for LLM agents built on a **Key/Value graph** — not a vector store. Memories live in a **Value Space**, accessed through a separate **Key Space** — one memory reachable via many keys, one key leading to many memories. This enables human-like associative leaps (multi-hop graph traversal) that pure embedding search fundamentally cannot replicate.
+
+**Works with:** Claude Desktop · Claude Code · any MCP-compatible LLM agent
 
 ---
 
