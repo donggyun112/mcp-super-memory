@@ -221,7 +221,7 @@ OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 Or use local embeddings (no API key required):
 ```
 EMBEDDING_BACKEND=local
-LOCAL_EMBEDDING_MODEL=all-MiniLM-L6-v2  # optional, this is the default
+LOCAL_EMBEDDING_MODEL=paraphrase-multilingual-MiniLM-L12-v2  # optional, this is the default
 ```
 
 > **Note:** Mixing backends on existing data will break recall. If switching backends, clear `~/.super-memory/graph.json` first.

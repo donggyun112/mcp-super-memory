@@ -21,7 +21,7 @@ CONVERSATIONS_DIR = DATA_DIR / "conversations"
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
-LOCAL_EMBEDDING_MODEL = os.getenv("LOCAL_EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+LOCAL_EMBEDDING_MODEL = os.getenv("LOCAL_EMBEDDING_MODEL", "paraphrase-multilingual-MiniLM-L12-v2")
 
 # 백엔드 결정: 명시적 설정 > API 키 유무로 자동 선택
 _DEFAULT_BACKEND = "openai" if OPENAI_API_KEY else "local"
