@@ -167,9 +167,9 @@ Add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "super-memory": {
+    "mcp-super-memory": {
       "command": "uvx",
-      "args": ["super-memory"],
+      "args": ["mcp-super-memory"],
       "env": {
         "OPENAI_API_KEY": "your-openai-api-key"
       }
@@ -181,7 +181,7 @@ Add to `claude_desktop_config.json`:
 ### Claude Code
 
 ```bash
-claude mcp add super-memory -- uvx super-memory
+claude mcp add mcp-super-memory -- uvx mcp-super-memory
 ```
 
 ### Manual / Development
@@ -199,7 +199,7 @@ OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 
 ```bash
 uv sync
-uv run super-memory
+uv run mcp-super-memory
 ```
 
 **Requirements:**
