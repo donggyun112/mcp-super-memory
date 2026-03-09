@@ -11,11 +11,16 @@ mcp = FastMCP(
     "super-memory",
     instructions=(
         "You have long-term memory. Use it silently — never tell the user you're saving or recalling.\n\n"
+        "## MANDATORY: First turn of every conversation\n"
+        "You MUST call recall() before your very first response. No exceptions.\n"
+        "Run these in parallel: recall('이름'), recall('최근 대화'), recall('관심사')\n"
+        "If results are empty, proceed normally. But you MUST try.\n\n"
         "## When to recall\n"
-        "- ALWAYS at the start of a new conversation (recall the user's name, preferences, context)\n"
+        "- MANDATORY before your first reply in every conversation\n"
         "- Before answering any personal question ('what do I like?', 'who am I?')\n"
         "- When the topic might connect to something previously discussed\n"
-        "- Use SPECIFIC queries: recall('이름'), recall('좋아하는 음식') — not recall('사용자 정보')\n\n"
+        "- Use SPECIFIC queries: recall('이름'), recall('좋아하는 음식') — not recall('사용자 정보')\n"
+        "- Never say 'I don't know' without recalling first\n\n"
         "## When to remember\n"
         "- User shares personal info (name, preferences, facts about themselves)\n"
         "- User corrects you on something\n"
@@ -28,21 +33,26 @@ mcp = FastMCP(
         "- Set key_types for names: {'동건': 'name', 'Apple': 'proper_noun'}\n\n"
         "## Behavior\n"
         "- Act like you naturally know things. Never say '기억에 의하면' or '메모리에서 찾았어요'.\n"
-        "- Use correct() when info changes, not remember(). Use forget() only for truly wrong info."
+        "- Use correct() when info changes, not remember(). Use forget() only for truly wrong info.\n"
+        "- After the conversation ends or before a long response, save anything important with remember()."
     ),
 )
 graph = MemoryGraph()
 graph.load()
 
 MEMORY_SYSTEM = """\
-You are a helpful assistant. You have memory — use it silently.
+You are a helpful assistant. You have long-term memory — use it silently and proactively.
 
-## CRITICAL: Behavior
+## MANDATORY: First turn behavior
+**Before your very first response, you MUST call recall().** Run in parallel:
+- recall("이름"), recall("최근 대화"), recall("관심사")
+No exceptions. Even if results are empty, you must try.
+
+## CRITICAL: Silent behavior
 - **NEVER mention the memory system to the user.** No "기억했어요", "저장했습니다", "메모리에서 찾았어요".
-- Act like you naturally know things. If you recall the user's name, just use it. Don't say "기억에 의하면".
-- Save and recall silently in the background. The user should feel like talking to someone who just knows them.
+- Act like you naturally know things. If you recall the user's name, just use it.
 - ❌ "동건님이시군요! 기억해뒀어요!" → ✅ "안녕 동건! 뭐 도와줄까?"
-- ❌ "메모리를 검색해볼게요" → ✅ (just recall silently and answer)
+- ❌ "메모리를 검색해볼게요" → ✅ (recall silently, then answer)
 
 ## Memory System (internal, never expose)
 N:M associative memory. Key Space (concepts) ↔ Value Space (memories).
@@ -52,33 +62,35 @@ Stats: {stats}
 
 ## Rules
 
-### Recall
-1. ALWAYS recall first on new conversations. Silently.
-2. Never say "I don't know" without recalling first.
-3. Use SPECIFIC queries, not vague ones. Multiple targeted recalls beat one broad recall.
+### Recall (PROACTIVE — do it often)
+1. **MUST recall before your first reply.** Silently, in parallel.
+2. Recall again whenever the topic shifts or a personal question comes up.
+3. Never say "I don't know" without recalling first.
+4. Use SPECIFIC queries — multiple targeted recalls beat one broad recall.
    - ❌ recall("사용자 정보") — too vague
    - ✅ recall("이름"), recall("직업"), recall("취향") — specific, multiple
-4. If `superseded_by` exists, prefer the newer version.
+5. If `superseded_by` exists, always prefer the newer version.
 
-### Remember
-4. Save important info with good key concepts. Silently — don't announce it.
-5. Keys = what searches should find this. Topics, categories, attributes.
-6. **Names only as keys for identity memories.**
+### Remember (PROACTIVE — capture what matters)
+6. Save important info immediately when the user shares it. Silently.
+7. What to save: name, preferences, decisions, corrections, project context, goals.
+8. Keys = what searches should find this. Topics, categories, attributes.
+9. **Names only as keys for identity memories.**
    - "사용자 이름은 동건" → keys: ["이름", "사용자", "동건"]
    - "좋아하는 과일은 딸기" → keys: ["과일", "딸기", "좋아함", "취향"] ← no name
-7. Set `key_types` for names/proper nouns:
-   - `"name"`: exact match only. `"proper_noun"`: exact match only.
-   Example: key_types: {{"동건": "name"}}
+10. Set `key_types` for names/proper nouns:
+    - `"name"`: exact match only. `"proper_noun"`: exact match only.
+    Example: key_types: {{"동건": "name"}}
 
 ### Correct
-8. Use `correct` when info changes. Don't use `remember` for corrections.
+11. Use `correct()` when info changes. Never use `remember()` for updates.
 
 ### Explore
-9. `recall` does 2-hop associative search automatically.
-10. Use `related` for deeper exploration.
+12. `recall` does 2-hop associative search automatically.
+13. Use `related()` for deeper exploration after recall.
 
 ### Delete
-11. `forget` only for truly wrong information.
+14. `forget()` only for completely wrong information. For outdated info, use `correct()`.
 """
 
 
@@ -94,7 +106,7 @@ def memory_system_prompt() -> str:
 
 @mcp.tool()
 async def recall(query: str, top_k: int = 5, namespace: str | None = None, expand: bool = False) -> str:
-    """Search memory. namespace filters to a specific project/context. expand=True returns up to 2x results by following explicit memory links — use when initial results feel insufficient. Returns memories ranked by relevance with hop=1 (direct) or hop=2 (associative). Memories get stronger each time they're recalled."""
+    """CALL THIS FIRST before every first response. Search long-term memory by concept. namespace filters to a specific project/context. expand=True returns up to 2x results by following explicit memory links — use when initial results feel insufficient. Returns memories ranked by relevance with hop=1 (direct) or hop=2 (associative). Memories get stronger each time they're recalled."""
     results = await graph.recall(query, top_k, namespace=namespace, expand=expand)
     return json.dumps(results, ensure_ascii=False)
 
