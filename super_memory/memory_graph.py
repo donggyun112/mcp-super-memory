@@ -553,7 +553,7 @@ class MemoryGraph:
                     if _skip(mem_id):
                         continue
                     mem = self.memories[mem_id]
-                    depth_factor = 0.5 + mem.depth * 0.5
+                    depth_factor = 0.9 + mem.depth * 0.1
                     tf = self._time_factor(mem)
                     score = key_sim * idf * depth_factor * tf
                     mem_scores[mem_id] = mem_scores.get(mem_id, 0) + score
@@ -569,11 +569,17 @@ class MemoryGraph:
                     if _skip(mid):
                         continue
                     c_sim = float(content_sims[i])
-                    if c_sim >= 0.3:
+                    if c_sim >= 0.4:
                         mem = self.memories[mid]
-                        depth_factor = 0.5 + mem.depth * 0.5
+                        depth_factor = 0.9 + mem.depth * 0.1
                         tf = self._time_factor(mem)
-                        mem_scores[mid] = mem_scores.get(mid, 0) + c_sim * depth_factor * tf
+                        content_score = c_sim * depth_factor * tf * 0.8
+                        if mid in mem_scores:
+                            # 이미 키 매칭으로 히트한 기억 → content는 보조 신호로만 (20%)
+                            mem_scores[mid] += content_score * 0.2
+                        else:
+                            # 키 매칭 없는 기억 → content가 주 경로
+                            mem_scores[mid] = content_score
                         mem_matched_keys.setdefault(mid, []).append("(content)")
                         if mid not in mem_hop:
                             mem_hop[mid] = 1

@@ -28,8 +28,12 @@ mcp = FastMCP(
         "- Do NOT save trivial or temporary things (e.g. 'user said hello')\n\n"
         "## Key selection (critical for retrieval quality)\n"
         "- Keys are search terms that should lead to this memory. Think: 'what would someone search to find this?'\n"
-        "- Use 3-6 diverse keys: mix categories, attributes, and specifics\n"
-        "- Example: 'user likes strawberries' → keys: ['fruit', 'strawberry', 'food preference', 'likes']\n"
+        "- Use 3-6 diverse keys: mix SINGLE NOUNS and SHORT PHRASES (2-3 words)\n"
+        "  - Single nouns → broad coverage (matches any query containing that word)\n"
+        "  - Short phrases → high-score match when user searches the same expression\n"
+        "- Include synonyms and Korean morphological variants to compensate for form changes\n"
+        "  - e.g. something built → ['만든것', '개발', '제작'] not just ['만든것']\n"
+        "- Example: 'user likes iced americano' → keys: ['음료', '커피', '취향', '아이스 아메리카노', '좋아하는것']\n"
         "- Set key_types for names: {'동건': 'name', 'Apple': 'proper_noun'}\n\n"
         "## Behavior\n"
         "- Act like you naturally know things. Never say '기억에 의하면' or '메모리에서 찾았어요'.\n"
@@ -74,7 +78,13 @@ Stats: {stats}
 ### Remember (PROACTIVE — capture what matters)
 6. Save important info immediately when the user shares it. Silently.
 7. What to save: name, preferences, decisions, corrections, project context, goals.
-8. Keys = what searches should find this. Topics, categories, attributes.
+8. Keys = what searches should find this. Mix single nouns + short phrases + synonyms.
+   - **Single nouns**: broad coverage — matches any query containing that word
+   - **Short phrases (2-3 words)**: high-score match when user searches the exact expression
+   - **Synonyms / Korean variants**: compensate for morphological form changes
+     - ❌ ["만든것"] only → misses "개발한", "제작", "만들었어"
+     - ✅ ["만든것", "개발", "제작"] → covers all variants
+   - Example: iced americano preference → ["음료", "커피", "취향", "아이스 아메리카노", "좋아하는것"]
 9. **Names only as keys for identity memories.**
    - "사용자 이름은 동건" → keys: ["이름", "사용자", "동건"]
    - "좋아하는 과일은 딸기" → keys: ["과일", "딸기", "좋아함", "취향"] ← no name
