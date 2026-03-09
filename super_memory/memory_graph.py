@@ -528,6 +528,8 @@ class MemoryGraph:
                     return True
                 if namespace and mem.namespace != namespace:
                     return True
+                if mid in self._superseded_by:  # 구버전은 recall에서 제외
+                    return True
                 return False
 
             # ── 경로 A: 키 배치 매칭 → 링크 → 기억 ──
@@ -543,7 +545,7 @@ class MemoryGraph:
                 if key.key_type in ("name", "proper_noun"):
                     if key.concept.lower() in query_lower:
                         key_scores.append((1.0, kid))
-                elif float(key_sims[i]) >= 0.35:
+                elif float(key_sims[i]) >= 0.3:
                     key_scores.append((float(key_sims[i]), kid))
             key_scores.sort(reverse=True)
 
@@ -569,7 +571,7 @@ class MemoryGraph:
                     if _skip(mid):
                         continue
                     c_sim = float(content_sims[i])
-                    if c_sim >= 0.4:
+                    if c_sim >= 0.35:
                         mem = self.memories[mid]
                         depth_factor = 0.9 + mem.depth * 0.1
                         tf = self._time_factor(mem)
@@ -615,11 +617,6 @@ class MemoryGraph:
                     mem_matched_keys.setdefault(linked_id, []).append("(linked)")
                     if linked_id not in mem_hop:
                         mem_hop[linked_id] = 2
-
-            # superseded 메모리(구버전)는 score에 패널티 적용
-            for mid in list(mem_scores.keys()):
-                if mid in self._superseded_by:
-                    mem_scores[mid] *= 0.1
 
             actual_top_k = top_k * 2 if expand else top_k
             ranked = sorted(mem_scores.items(), key=lambda x: x[1], reverse=True)[:actual_top_k]
